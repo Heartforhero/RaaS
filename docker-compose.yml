@@ -1,0 +1,20 @@
+services:
+  nacos:
+    image: nacos/nacos-server:latest
+    container_name: raas-nocas   # 固定容器名（默认会是 raas-nacos-1）
+    restart: always              # 容器崩溃或宿主机重启后自动拉起
+    ports:
+      - "8080:8080"              # 控制台端口
+      - "8848:8848"              # 客户端注册/发现、配置读取、OpenAPI 都走这里
+      - "9848:9848"              # gRPC 端口：客户端长连接必须（8848+1000）
+    environment:
+      - MODE=standalone          # 单机模式（默认集群，单机必须显式指定）
+      - NACOS_AUTH_ENABLE=true   # 开启鉴权：控制台登录、客户端带用户名密码
+      # JWT 密钥（原文 ≥32 字符）
+      - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+      # 服务端间通信身份标识
+      - NACOS_AUTH_IDENTITY_KEY=serverIdentity   # 集群节点互相认证的键（3.x 必配）
+      - NACOS_AUTH_IDENTITY_VALUE=security       # 对应的值，单机无实际影响但缺了会告警
+    volumes:                     # 数据卷挂载，格式 "宿主机路径:容器内路径"
+      - ./nacos/logs:/home/nacos/logs
+      - ./nacos/data:/home/nacos/data
